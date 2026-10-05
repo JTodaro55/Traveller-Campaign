@@ -258,7 +258,7 @@
             <ul id="trade-list" class="list-container"></ul>
         </div>
 
-        <!-- EXTENDED DEEP SPACE ENCOUNTER MATRIX WITH UWP & SHIP STATS -->
+        <!-- EXTENDED DEEP SPACE ENCOUNTER MATRIX WITH UWP & DISPATCH CAPABILITIES -->
         <div class="card" style="grid-column: 1 / -1;">
             <h2>System & Starship Encounter Generator</h2>
             <button onclick="generateEncounter()">Roll Encounters Engine</button>
@@ -269,12 +269,15 @@
                 
                 <h3 style="color:var(--primary); margin-top:15px; border-bottom: 1px solid var(--border); padding-bottom:4px;">Vessel Signature</h3>
                 <div class="output-row"><span>Vessel Identity:</span><span id="enc-name" class="output-val">-</span></div>
-                <div class="output-row"><span>Hull Classification:</span><span id="enc-type" class="output-val">-</span></div>
 Use code with caution.
+Hull Classification:-
 Command Profile:-
 Combat Specifications
 Hull Points / Armor:-
 Weapon Hardpoints:-
+Deploy rolled vessel directly to Combat Tracker
+Scanned Cargo Hold
+Active Freight Load:-
 Crew Status & Sub-Surface Demeanor:
 
 
@@ -286,6 +289,7 @@ Campaign Discovery & Clue Matrix
 Log Narrative Data Point
 
 let currentCargoList = [];
+let currentActiveEncounter = null;
 window.onload = function() {
 ['hull-size', 'current-funds', 'monthly-mortgage', 'crew-salaries', 'power-plant'].forEach(id => {
 if(localStorage.getItem(id)) document.getElementById(id).value = localStorage.getItem(id);
@@ -324,12 +328,14 @@ const name = document.getElementById('comb-name').value.trim();
 const init = parseInt(document.getElementById('comb-init').value) || 0;
 const hp = parseInt(document.getElementById('comb-hp').value) || 10;
 const arm = parseInt(document.getElementById('comb-arm').value) || 0;
-if(!name) return;
+executeAddCombatant(name, init, hp, arm);
+['comb-name', 'comb-init', 'comb-hp', 'comb-arm'].forEach(id => document.getElementById(id).value = '');
+}
+function executeAddCombatant(name, init, hp, arm) {
 let list = JSON.parse(localStorage.getItem('t2_combat')) || [];
 list.push({ name, init, hp, arm });
 list.sort((a,b) => b.init - a.init);
 localStorage.setItem('t2_combat', JSON.stringify(list));
-['comb-name', 'comb-init', 'comb-hp', 'comb-arm'].forEach(id => document.getElementById(id).value = '');
 renderCombatants();
 }
 function renderCombatants() {
@@ -392,14 +398,14 @@ document.body.appendChild(link);
 link.click();
 document.body.removeChild(link);
 }
-// Encounter Data Sets & Structural Systems
+// Encounter Matrix System Core Databanks
 const shipNames = ["Astraea's Wake", "Bold Venture", "Sovereign Light", "Void Wanderer", "Horizon Horizon", "Sulieman's Ghost", "Ghalalk Pride", "Beowulf II"];
 const shipClasses = [
-{ type: "Type S Scout/Courier (100 Tons)", hp: "40 HP", arm: "Armor 4", weapons: "1x Double Turret (Pulse Laser/Sandcaster)" },
-{ type: "Type A Free Trader (200 Tons)", hp: "80 HP", arm: "Armor 2", weapons: "2x Single Hardpoints (Empty / Ready for Mount)" },
-{ type: "Type R Subsidized Merchant (400 Tons)", hp: "160 HP", arm: "Armor 2", weapons: "2x Double Turrets (Beam Lasers)" },
-{ type: "Custom Seeker Mining Vessel (150 Tons)", hp: "60 HP", arm: "Armor 6", weapons: "1x Fixed Hardpoint (Mining Laser Array)" },
-{ type: "Type Y Yacht (200 Tons)", hp: "80 HP", arm: "Armor 0", weapons: "No Mounted Weapon Systems" }
+{ type: "Type S Scout/Courier (100 Tons)", hp: 40, arm: 4, weapons: "1x Double Turret (Pulse Laser/Sandcaster)" },
+{ type: "Type A Free Trader (200 Tons)", hp: 80, arm: 2, weapons: "2x Single Hardpoints (Empty)" },
+{ type: "Type R Subsidized Merchant (400 Tons)", hp: 160, arm: 2, weapons: "2x Double Turrets (Beam Lasers)" },
+{ type: "Custom Seeker Mining Vessel (150 Tons)", hp: 60, arm: 6, weapons: "1x Fixed Hardpoint (Mining Laser Array)" },
+{ type: "Type Y Yacht (200 Tons)", hp: 80, arm: 0, weapons: "No Mounted Weapon Systems" }
 ];
 const captains = ["Captain Harlen Vane", "Captain Kaelen Voss", "Captain Jina Shan", "Captain Marc Sunder", "Captain Paula Vance"];
 const quirks = [
@@ -410,25 +416,39 @@ const quirks = [
 "Smuggling minor black-market commodities under lead shield plates within core fresh water storage arrays."
 ];
 function rollHexValue() {
-const val = Math.floor(Math.random() * 15);
-return val.toString(16).toUpperCase();
+return Math.floor(Math.random() * 15).toString(16).toUpperCase();
 }
 function generateUWP() {
 const ports = ['A', 'B', 'C', 'D', 'E', 'X'];
-const starport = ports[Math.floor(Math.random() * ports.length)];
-return ${starport}${rollHexValue()}${rollHexValue()}${rollHexValue()}${rollHexValue()}${rollHexValue()}${rollHexValue()}-${rollHexValue()};
+return ${ports[Math.floor(Math.random() * ports.length)]}${rollHexValue()}${rollHexValue()}${rollHexValue()}${rollHexValue()}${rollHexValue()}${rollHexValue()}-${rollHexValue()};
 }
 function generateEncounter() {
 document.getElementById('encounter-output').style.display = "block";
-const selectedClass = shipClasses[Math.floor(Math.random() * shipClasses.length)];
+const sClass = shipClasses[Math.floor(Math.random() * shipClasses.length)];
+const sName = shipNames[Math.floor(Math.random() * shipNames.length)];
+const sCargo = cargoTable[Math.floor(Math.random() * cargoTable.length)];
+const cargoTons = (Math.floor(Math.random() * 6) + 1) * 5;
+currentActiveEncounter = {
+name: ${sName} (${sClass.type}),
+hp: sClass.hp,
+arm: sClass.arm
+};
 document.getElementById('enc-uwp').innerText = generateUWP();
-document.getElementById('enc-name').innerText = shipNames[Math.floor(Math.random() * shipNames.length)];
-document.getElementById('enc-type').innerText = selectedClass.type;
+document.getElementById('enc-name').innerText = sName;
+document.getElementById('enc-type').innerText = sClass.type;
 document.getElementById('enc-captain').innerText = captains[Math.floor(Math.random() * captains.length)];
-document.getElementById('enc-combat-stats').innerText = ${selectedClass.hp} / ${selectedClass.arm};
-document.getElementById('enc-weapons').innerText = selectedClass.weapons;
+document.getElementById('enc-combat-stats').innerText = ${sClass.hp} HP / Armor ${sClass.arm};
+document.getElementById('enc-weapons').innerText = sClass.weapons;
+document.getElementById('enc-cargo').innerText = ${cargoTons} Tons of ${sCargo.name};
 document.getElementById('enc-crew').innerText = quirks[Math.floor(Math.random() * quirks.length)];
 }
+document.getElementById('btn-deploy-combat').addEventListener('click', () => {
+if (currentActiveEncounter) {
+const rolledInit = Math.floor(Math.random() * 6) + 1 + Math.floor(Math.random() * 6) + 1; // 2d6 baseline
+executeAddCombatant(currentActiveEncounter.name, rolledInit, currentActiveEncounter.hp, currentActiveEncounter.arm);
+alert(${currentActiveEncounter.name} deployed to combat trackers with a rolled 2d6 initiative of ${rolledInit}.);
+}
+});
 function addClue() {
 const txt = document.getElementById('clue-input').value.trim();
 if(!txt) return;
