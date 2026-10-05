@@ -270,7 +270,6 @@
                 <h3 style="color:var(--primary); margin-top:15px; border-bottom: 1px solid var(--border); padding-bottom:4px;">Vessel Signature</h3>
                 <div class="output-row"><span>Vessel Identity:</span><span id="enc-name" class="output-val">-</span></div>
                 <div class="output-row"><span>Hull Classification:</span><span id="enc-type" class="output-val">-</span></div>
-Use code with caution.
 Command Profile:-
 Combat Specifications
 Hull Points / Armor:-
@@ -303,7 +302,6 @@ Campaign Discovery & Clue Matrix
 
 Log Narrative Data Point
 
- 
 let currentCargoList = [];
 let currentActiveEncounter = null;
 window.onload = function() {
@@ -345,6 +343,7 @@ const name = document.getElementById('comb-name').value.trim();
 const init = parseInt(document.getElementById('comb-init').value) || 0;
 const hp = parseInt(document.getElementById('comb-hp').value) || 10;
 const arm = parseInt(document.getElementById('comb-arm').value) || 0;
+if(!name) return;
 executeAddCombatant(name, init, hp, arm);
 ['comb-name', 'comb-init', 'comb-hp', 'comb-arm'].forEach(id => document.getElementById(id).value = '');
 }
@@ -458,13 +457,15 @@ document.getElementById('enc-weapons').innerText = sClass.weapons;
 document.getElementById('enc-cargo').innerText = ${cargoTons} Tons of ${sCargo.name};
 document.getElementById('enc-crew').innerText = quirks[Math.floor(Math.random() * quirks.length)];
 }
-document.getElementById('btn-deploy-combat').addEventListener('click', () => {
+function deployEncounterToCombat() {
 if (currentActiveEncounter) {
 const rolledInit = Math.floor(Math.random() * 6) + 1 + Math.floor(Math.random() * 6) + 1;
 executeAddCombatant(currentActiveEncounter.name, rolledInit, currentActiveEncounter.hp, currentActiveEncounter.arm);
 alert(${currentActiveEncounter.name} deployed to combat trackers with a rolled 2d6 initiative of ${rolledInit}.);
+} else {
+alert("Please roll a deep space encounter first.");
 }
-});
+}
 function addFaction() {
 const name = document.getElementById('fac-name').value.trim();
 const loc = document.getElementById('fac-loc').value.trim() || "Unknown Coordinate";
