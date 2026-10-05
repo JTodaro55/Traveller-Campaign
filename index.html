@@ -303,6 +303,7 @@ Campaign Discovery & Clue Matrix
 
 Log Narrative Data Point
 
+ 
 let currentCargoList = [];
 let currentActiveEncounter = null;
 window.onload = function() {
@@ -414,7 +415,6 @@ document.body.appendChild(link);
 link.click();
 document.body.removeChild(link);
 }
-// Encounter Matrix System Core Databanks
 const shipNames = ["Astraea's Wake", "Bold Venture", "Sovereign Light", "Void Wanderer", "Horizon Horizon", "Sulieman's Ghost", "Ghalalk Pride", "Beowulf II"];
 const shipClasses = [
 { type: "Type S Scout/Courier (100 Tons)", hp: 40, arm: 4, weapons: "1x Double Turret (Pulse Laser/Sandcaster)" },
@@ -465,7 +465,6 @@ executeAddCombatant(currentActiveEncounter.name, rolledInit, currentActiveEncoun
 alert(${currentActiveEncounter.name} deployed to combat trackers with a rolled 2d6 initiative of ${rolledInit}.);
 }
 });
-// Faction Tracker Engine
 function addFaction() {
 const name = document.getElementById('fac-name').value.trim();
 const loc = document.getElementById('fac-loc').value.trim() || "Unknown Coordinate";
