@@ -258,7 +258,7 @@
             <ul id="trade-list" class="list-container"></ul>
         </div>
 
-        <!-- EXTENDED DEEP SPACE ENCOUNTER MATRIX WITH UWP & DISPATCH CAPABILITIES -->
+        <!-- ENCOUNTER ENGINE -->
         <div class="card" style="grid-column: 1 / -1;">
             <h2>System & Starship Encounter Generator</h2>
             <button onclick="generateEncounter()">Roll Encounters Engine</button>
@@ -269,8 +269,8 @@
                 
                 <h3 style="color:var(--primary); margin-top:15px; border-bottom: 1px solid var(--border); padding-bottom:4px;">Vessel Signature</h3>
                 <div class="output-row"><span>Vessel Identity:</span><span id="enc-name" class="output-val">-</span></div>
+                <div class="output-row"><span>Hull Classification:</span><span id="enc-type" class="output-val">-</span></div>
 Use code with caution.
-Hull Classification:-
 Command Profile:-
 Combat Specifications
 Hull Points / Armor:-
@@ -281,6 +281,21 @@ Active Freight Load:-
 Crew Status & Sub-Surface Demeanor:
 
 
+
+Rival Ancient Hunters & Faction Tracker
+
+
+
+
+Low Threat
+Medium Threat
+High Threat
+
+
+
+
+
+Register Faction Profile
 
 Campaign Discovery & Clue Matrix
 
@@ -298,6 +313,7 @@ calculateJump();
 calculateOverhead();
 renderClues();
 renderCombatants();
+renderFactions();
 };
 function autoSave(id, val) { localStorage.setItem(id, val); }
 function calculateJump() {
@@ -444,11 +460,39 @@ document.getElementById('enc-crew').innerText = quirks[Math.floor(Math.random() 
 }
 document.getElementById('btn-deploy-combat').addEventListener('click', () => {
 if (currentActiveEncounter) {
-const rolledInit = Math.floor(Math.random() * 6) + 1 + Math.floor(Math.random() * 6) + 1; // 2d6 baseline
+const rolledInit = Math.floor(Math.random() * 6) + 1 + Math.floor(Math.random() * 6) + 1;
 executeAddCombatant(currentActiveEncounter.name, rolledInit, currentActiveEncounter.hp, currentActiveEncounter.arm);
 alert(${currentActiveEncounter.name} deployed to combat trackers with a rolled 2d6 initiative of ${rolledInit}.);
 }
 });
+// Faction Tracker Engine
+function addFaction() {
+const name = document.getElementById('fac-name').value.trim();
+const loc = document.getElementById('fac-loc').value.trim() || "Unknown Coordinate";
+const threat = document.getElementById('fac-threat').value;
+const goal = document.getElementById('fac-goal').value.trim() || "Classified Objectives";
+if(!name) return;
+let list = JSON.parse(localStorage.getItem('t2_factions')) || [];
+list.push({ name, loc, threat, goal });
+localStorage.setItem('t2_factions', JSON.stringify(list));
+['fac-name', 'fac-loc', 'fac-goal'].forEach(id => document.getElementById(id).value = '');
+renderFactions();
+}
+function renderFactions() {
+const el = document.getElementById('faction-list'); el.innerHTML = '';
+let list = JSON.parse(localStorage.getItem('t2_factions')) || [];
+list.forEach((f, idx) => {
+const li = document.createElement('li'); li.className = 'item-row';
+li.innerHTML = <div><strong>${f.name}</strong> — <span style="color:var(--primary)">${f.loc}</span> [<em>${f.threat}</em>]<br> <span style="color:var(--text-muted)">Objective: ${f.goal}</span></div> <button class="btn-danger" onclick="removeFaction(${idx})">Retire</button>;
+el.appendChild(li);
+});
+}
+function removeFaction(idx) {
+let list = JSON.parse(localStorage.getItem('t2_factions')) || [];
+list.splice(idx, 1);
+localStorage.setItem('t2_factions', JSON.stringify(list));
+renderFactions();
+}
 function addClue() {
 const txt = document.getElementById('clue-input').value.trim();
 if(!txt) return;
