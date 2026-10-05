@@ -90,10 +90,19 @@
             cursor: pointer;
             width: 100%;
             transition: background 0.2s;
+            margin-bottom: 5px;
         }
 
         button:hover {
             background-color: var(--primary-hover);
+        }
+
+        .btn-success {
+            background-color: var(--success);
+            color: var(--bg-dark);
+        }
+        .btn-success:hover {
+            background-color: #059669;
         }
 
         .output-box {
@@ -218,7 +227,7 @@
             </div>
         </div>
 
-        <!-- NEW MODULE 4: COMBAT & INITIATIVE TRACKER -->
+        <!-- COMBAT TRACKER MODULE -->
         <div class="card">
             <h2>Tactics & Combat Tracker</h2>
             <div class="inline-group">
@@ -231,7 +240,7 @@
             <ul id="combat-list" class="list-container"></ul>
         </div>
 
-        <!-- NEW MODULE 5: SPECULATIVE TRADE GOODS ENGINE -->
+        <!-- SPECULATIVE TRADE GOODS ENGINE & EXPORTER -->
         <div class="card">
             <h2>Speculative Cargo Generator</h2>
             <div class="form-group">
@@ -245,40 +254,53 @@
                 </select>
             </div>
             <button onclick="generateTradeGoods()">Roll Manifest Lot Options</button>
+            <button class="btn-success" onclick="exportCargoCSV()">Export Cargo List (CSV)</button>
             <ul id="trade-list" class="list-container"></ul>
         </div>
 
-        <!-- NARRATIVE CORE MATRIX -->
+        <!-- EXTENDED DEEP SPACE ENCOUNTER MATRIX WITH UWP & SHIP STATS -->
         <div class="card" style="grid-column: 1 / -1;">
-            <h2>Campaign Discovery & Clue Matrix</h2>
-            <div class="form-group">
-                <textarea id="clue-input" rows="2" placeholder="Enter unlocked artifact records or hyper-spatial observations..."></textarea>
-            </div>
-            <button onclick="addClue()">Log Narrative Data Point</button>
-            <ul id="clue-log" class="list-container"></ul>
-        </div>
+            <h2>System & Starship Encounter Generator</h2>
+            <button onclick="generateEncounter()">Roll Encounters Engine</button>
+            
+            <div id="encounter-output" class="output-box" style="display:none; border-left-color: var(--success);">
+                <h3 style="color:var(--success); border-bottom: 1px solid var(--border); padding-bottom:4px;">Local System Context</h3>
+                <div class="output-row"><span>System Profile (UWP):</span><span id="enc-uwp" class="output-val">-</span></div>
+                
+                <h3 style="color:var(--primary); margin-top:15px; border-bottom: 1px solid var(--border); padding-bottom:4px;">Vessel Signature</h3>
+                <div class="output-row"><span>Vessel Identity:</span><span id="enc-name" class="output-val">-</span></div>
+                <div class="output-row"><span>Hull Classification:</span><span id="enc-type" class="output-val">-</span></div>
+Use code with caution.
+Command Profile:-
+Combat Specifications
+Hull Points / Armor:-
+Weapon Hardpoints:-
+Crew Status & Sub-Surface Demeanor:
 
-    </div>
 
-    <script>
-        window.onload = function() {
-            // Restore persistent state values
-            ['hull-size', 'current-funds', 'monthly-mortgage', 'crew-salaries', 'power-plant'].forEach(id => {
-                if(localStorage.getItem(id)) document.getElementById(id).value = localStorage.getItem(id);
-            });
-            calculateJump();
-            calculateOverhead();
-            renderClues();
-            renderCombatants();
-        };
 
-        function autoSave(id, val) { localStorage.setItem(id, val); }
+Campaign Discovery & Clue Matrix
 
-        function calculateJump() {
-            const hull = parseFloat(document.getElementById('hull-size').value) || 0;
-            const jump = parseFloat(document.getElementById('jump-dist').value) || 0;
-            const pp = parseFloat(document.getElementById('power-plant').value) || 0;
-            const jFuel = 0.1 * hull * jump;
+
+
+Log Narrative Data Point
+
+let currentCargoList = [];
+window.onload = function() {
+['hull-size', 'current-funds', 'monthly-mortgage', 'crew-salaries', 'power-plant'].forEach(id => {
+if(localStorage.getItem(id)) document.getElementById(id).value = localStorage.getItem(id);
+});
+calculateJump();
+calculateOverhead();
+renderClues();
+renderCombatants();
+};
+function autoSave(id, val) { localStorage.setItem(id, val); }
+function calculateJump() {
+const hull = parseFloat(document.getElementById('hull-size').value) || 0;
+const jump = parseFloat(document.getElementById('jump-dist').value) || 0;
+const pp = parseFloat(document.getElementById('power-plant').value) || 0;
+const jFuel = 0.1 * hull * jump;
 const ppFuel = (0.05 * hull * pp) / 4;
 document.getElementById('out-jump-fuel').innerText = jFuel.toFixed(1) + " Tons";
 document.getElementById('out-pp-fuel').innerText = ppFuel.toFixed(1) + " Tons";
@@ -297,7 +319,6 @@ autoSave('current-funds', funds);
 autoSave('monthly-mortgage', mort);
 autoSave('crew-salaries', crew);
 }
-// Tactical Matrix Operations
 function addCombatant() {
 const name = document.getElementById('comb-name').value.trim();
 const init = parseInt(document.getElementById('comb-init').value) || 0;
@@ -326,7 +347,6 @@ list.splice(idx, 1);
 localStorage.setItem('t2_combat', JSON.stringify(list));
 renderCombatants();
 }
-// Trade Goods Operations Engine
 const cargoTable = [
 { name: "Common Electronics", base: 20000, dice: 2 },
 { name: "Basic Machine Parts", base: 10000, dice: 3 },
@@ -339,6 +359,7 @@ const cargoTable = [
 function generateTradeGoods() {
 const el = document.getElementById('trade-list'); el.innerHTML = '';
 const port = document.getElementById('starport-type').value;
+currentCargoList = [];
 let numLots = 3;
 if(port === 'A') numLots = 6;
 if(port === 'B') numLots = 5;
@@ -347,13 +368,67 @@ for(let i=0; i < numLots; i++) {
 const item = cargoTable[Math.floor(Math.random() * cargoTable.length)];
 let tons = 0;
 for(let d=0; d < item.dice; d++) tons += Math.floor(Math.random() * 6) + 1;
-tons *= 5; // Scale up sizing array
+tons *= 5;
+currentCargoList.push({ name: item.name, tons: tons, basePrice: item.base });
 const li = document.createElement('li'); li.className = 'item-row';
 li.innerHTML = <div><strong>${item.name}</strong><br><span style="color:var(--text-muted)">Lot Size: ${tons} Tons | Base: ${item.base.toLocaleString()} Cr/Ton</span></div>;
 el.appendChild(li);
 }
 }
-// Narrative Clue Archiving
+function exportCargoCSV() {
+if(currentCargoList.length === 0) {
+alert("Please roll a manifest lot options list before exporting.");
+return;
+}
+let csvContent = "data:text/csv;charset=utf-8,Cargo Type,Quantity (Tons),Base Price (Cr/Ton)\n";
+currentCargoList.forEach(c => {
+csvContent += "${c.name}",${c.tons},${c.basePrice}\n;
+});
+const encodedUri = encodeURI(csvContent);
+const link = document.createElement("a");
+link.setAttribute("href", encodedUri);
+link.setAttribute("download", "traveller_cargo_manifest.csv");
+document.body.appendChild(link);
+link.click();
+document.body.removeChild(link);
+}
+// Encounter Data Sets & Structural Systems
+const shipNames = ["Astraea's Wake", "Bold Venture", "Sovereign Light", "Void Wanderer", "Horizon Horizon", "Sulieman's Ghost", "Ghalalk Pride", "Beowulf II"];
+const shipClasses = [
+{ type: "Type S Scout/Courier (100 Tons)", hp: "40 HP", arm: "Armor 4", weapons: "1x Double Turret (Pulse Laser/Sandcaster)" },
+{ type: "Type A Free Trader (200 Tons)", hp: "80 HP", arm: "Armor 2", weapons: "2x Single Hardpoints (Empty / Ready for Mount)" },
+{ type: "Type R Subsidized Merchant (400 Tons)", hp: "160 HP", arm: "Armor 2", weapons: "2x Double Turrets (Beam Lasers)" },
+{ type: "Custom Seeker Mining Vessel (150 Tons)", hp: "60 HP", arm: "Armor 6", weapons: "1x Fixed Hardpoint (Mining Laser Array)" },
+{ type: "Type Y Yacht (200 Tons)", hp: "80 HP", arm: "Armor 0", weapons: "No Mounted Weapon Systems" }
+];
+const captains = ["Captain Harlen Vane", "Captain Kaelen Voss", "Captain Jina Shan", "Captain Marc Sunder", "Captain Paula Vance"];
+const quirks = [
+"Running with transponder signature dark. Crew seems hyper-vigilant and heavily armed.",
+"Fleeing local atmospheric system grid citing unexpected sensor phantom readings.",
+"Openly transmitting standard distress beacons due to primary jump grid thermal leakage.",
+"Aggressively pursuing scanning coordinates, completely ignoring local orbital traffic control warnings.",
+"Smuggling minor black-market commodities under lead shield plates within core fresh water storage arrays."
+];
+function rollHexValue() {
+const val = Math.floor(Math.random() * 15);
+return val.toString(16).toUpperCase();
+}
+function generateUWP() {
+const ports = ['A', 'B', 'C', 'D', 'E', 'X'];
+const starport = ports[Math.floor(Math.random() * ports.length)];
+return ${starport}${rollHexValue()}${rollHexValue()}${rollHexValue()}${rollHexValue()}${rollHexValue()}${rollHexValue()}-${rollHexValue()};
+}
+function generateEncounter() {
+document.getElementById('encounter-output').style.display = "block";
+const selectedClass = shipClasses[Math.floor(Math.random() * shipClasses.length)];
+document.getElementById('enc-uwp').innerText = generateUWP();
+document.getElementById('enc-name').innerText = shipNames[Math.floor(Math.random() * shipNames.length)];
+document.getElementById('enc-type').innerText = selectedClass.type;
+document.getElementById('enc-captain').innerText = captains[Math.floor(Math.random() * captains.length)];
+document.getElementById('enc-combat-stats').innerText = ${selectedClass.hp} / ${selectedClass.arm};
+document.getElementById('enc-weapons').innerText = selectedClass.weapons;
+document.getElementById('enc-crew').innerText = quirks[Math.floor(Math.random() * quirks.length)];
+}
 function addClue() {
 const txt = document.getElementById('clue-input').value.trim();
 if(!txt) return;
