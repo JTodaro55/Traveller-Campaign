@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traveller 2E Campaign Dashboard</title>
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --primary: #38bdf8;
+            --primary-hover: #0ea5e9;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --danger: #ef4444;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+        }
+
+        header {
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1, h2, h3 {
+            margin: 0 0 10px 0;
+            color: var(--primary);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            background-color: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--text-main);
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: var(--primary);
+            color: var(--bg-dark);
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .output-box {
+            background-color: var(--bg-dark);
+            border-left: 4px solid var(--primary);
+            padding: 10px;
+            margin-top: 15px;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .output-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.95rem;
+        }
+
+        .output-val {
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .log-list {
+            list-style: none;
+            padding: 0;
+            margin: 10px 0 0 0;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .log-item {
+            padding: 8px;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.875rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .clear-btn {
+            background-color: transparent;
+            color: var(--danger);
+            border: 1px solid var(--danger);
+            padding: 4px 8px;
+            font-size: 0.75rem;
+            width: auto;
+            margin-top: 10px;
+        }
+
+        .clear-btn:hover {
+            background-color: var(--danger);
+            color: var(--text-main);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div>
+            <h1>TRAVELLER 2E</h1>
+            <p style="margin: 0; color: var(--text-muted);">Campaign Operations & Minutia Dashboard</p>
+        </div>
+    </header>
+
+    <div class="dashboard-grid">
+
+        <!-- MODULE 1: JUMP & FUEL CALCULATOR -->
+        <div class="card">
+            <h2>Jump & Fuel Calculator</h2>
+            <div class="form-group">
+                <label for="hull-size">Ship Hull Size (Tons)</label>
+                <input type="number" id="hull-size" value="200" min="10">
+            </div>
+            <div class="form-group">
+                <label for="jump-dist">Jump Distance (Parsecs)</label>
+                <select id="jump-dist">
+                    <option value="1">Jump-1</option>
+                    <option value="2" selected>Jump-2</option>
+                    <option value="3">Jump-3</option>
+                    <option value="4">Jump-4</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="power-plant">Power Plant Rating</label>
+                <input type="number" id="power-plant" value="2" min="1">
+            </div>
+            <div class="form-group">
+                <label for="weeks-ops">Weeks of Operation planned</label>
+                <input type="number" id="weeks-ops" value="4" min="1">
+            </div>
+            <button onclick="calculateJump()">Calculate Logistics</button>
+
+            <div class="output-box">
+                <div class="output-row"><span>Jump Fuel Needed:</span><span id="out-jump-fuel" class="output-val">0 Tons</span></div>
+                <div class="output-row"><span>Power Plant Fuel/Week:</span><span id="out-pp-fuel" class="output-val">0 Tons</span></div>
+                <div class="output-row"><span>Total Core Operational Fuel:</span><span id="out-total-fuel" class="output-val">0 Tons</span></div>
+                <div class="output-row"><span>Standard Jump Duration:</span><span class="output-val">148 + 4d6 Hours (~1 Week)</span></div>
+            </div>
+        </div>
+
+        <!-- MODULE 2: SHIP FINANCIAL LEDGER -->
+        <div class="card">
+            <h2>Ship Ledger & Economics</h2>
+            <div class="form-group">
+                <label for="current-funds">Current Ship Funds (Cr)</label>
+                <input type="number" id="current-funds" value="100000">
+            </div>
+            <div class="form-group">
+                <label for="monthly-mortgage">Monthly Mortgage (Cr)</label>
+                <input type="number" id="monthly-mortgage" value="25000">
+            </div>
+            <div class="form-group">
+                <label for="crew-salaries">Monthly Salaries & Life Support (Cr)</label>
+                <input type="number" id="crew-salaries" value="12000">
+            </div>
+            <div class="form-group">
+                <label for="maintenance-fee">Monthly Maintenance Fund (Cr)</label>
+                <input type="number" id="maintenance-fee" value="2000">
+            </div>
+            <button onclick="calculateOverhead()">Calculate Monthly Overhead</button>
+
+            <div class="output-box">
+                <div class="output-row"><span>Total Fixed Monthly Cost:</span><span id="out-overhead" class="output-val">0 Cr</span></div>
+                <div class="output-row"><span>Remaining Funds After Autopay:</span><span id="out-remaining-funds" class="output-val">0 Cr</span></div>
+            </div>
+        </div>
+
+        <!-- MODULE 3: LORE & CLUE MATRIX TRACKER -->
+        <div class="card">
+            <h2>Ancients Narrative Matrix</h2>
+            <div class="form-group">
+                <label for="clue-input">Log Discovered Clue / Artifact / Rumor</label>
+                <textarea id="clue-input" rows="3" placeholder="e.g., Found Research Logs on Calefaction pointing to Twilight's Peak..."></textarea>
+            </div>
+            <button onclick="addClue()">Commit to Session Log</button>
+            <ul id="clue-log" class="log-list"></ul>
+            <button class="clear-btn" onclick="clearLogs('clues')">Clear Matrix Data</button>
+        </div>
+
+    </div>
+
+    <script>
+        // Load data on start
+        window.onload = function() {
+            if(localStorage.getItem('hull-size')) document.getElementById('hull-size').value = localStorage.getItem('hull-size');
+            if(localStorage.getItem('current-funds')) document.getElementById('current-funds').value = localStorage.getItem('current-funds');
+            if(localStorage.getItem('monthly-mortgage')) document.getElementById('monthly-mortgage').value = localStorage.getItem('monthly-mortgage');
+            if(localStorage.getItem('crew-salaries')) document.getElementById('crew-salaries').value = localStorage.getItem('crew-salaries');
+            if(localStorage.getItem('maintenance-fee')) document.getElementById('maintenance-fee').value = localStorage.getItem('maintenance-fee');
+            
+            renderClues();
+            calculateJump();
+            calculateOverhead();
+        };
+
+        // Save inputs persistently
+        function autoSaveFields() {
+            localStorage.setItem('hull-size', document.getElementById('hull-size').value);
+            localStorage.setItem('current-funds', document.getElementById('current-funds').value);
+            localStorage.setItem('monthly-mortgage', document.getElementById('monthly-mortgage').value);
+            localStorage.setItem('crew-salaries', document.getElementById('crew-salaries').value);
+            localStorage.setItem('maintenance-fee', document.getElementById('maintenance-fee').value);
+        }
+
+        // Logic calculations
+        function calculateJump() {
+            const hull = parseFloat(document.getElementById('hull-size').value) || 0;
+            const jump = parseFloat(document.getElementById('jump-dist').value) || 0;
+            const pp = parseFloat(document.getElementById('power-plant').value) || 0;
+            const weeks = parseFloat(document.getElementById('weeks-ops').value) || 0;
+
+            // Traveller 2E Rules formulas:
+            // Jump Fuel = 0.1 * Hull Size * Jump Distance
+            const jumpFuel = 0.1 * hull * jump;
+			// Power Plant Fuel = 0.05 * Hull Size * Power Plant Rating (per 4 weeks under standard design rules)
+// Normalized per week: (0.05 * hull * pp) / 4 * weeks
+const ppFuelPerWeek = (0.05 * hull * pp) / 4;
+const ppTotalFuel = ppFuelPerWeek * weeks;
+document.getElementById('out-jump-fuel').innerText = jumpFuel.toFixed(1) + " Tons";
+document.getElementById('out-pp-fuel').innerText = ppFuelPerWeek.toFixed(1) + " Tons";
+document.getElementById('out-total-fuel').innerText = (jumpFuel + ppTotalFuel).toFixed(1) + " Tons";
+autoSaveFields();
+}
+function calculateOverhead() {
+const funds = parseFloat(document.getElementById('current-funds').value) || 0;
+const mortgage = parseFloat(document.getElementById('monthly-mortgage').value) || 0;
+const crew = parseFloat(document.getElementById('crew-salaries').value) || 0;
+const maint = parseFloat(document.getElementById('maintenance-fee').value) || 0;
+const totalOverhead = mortgage + crew + maint;
+const remaining = funds - totalOverhead;
+document.getElementById('out-overhead').innerText = totalOverhead.toLocaleString() + " Cr";
+document.getElementById('out-remaining-funds').innerText = remaining.toLocaleString() + " Cr";
+autoSaveFields();
+}
+// Matrix log systems
+function addClue() {
+const txt = document.getElementById('clue-input').value.trim();
+if(!txt) return;
+let clues = JSON.parse(localStorage.getItem('traveller_clues')) || [];
+clues.push({ text: txt, date: new Date().toLocaleDateString() });
+localStorage.setItem('traveller_clues', JSON.stringify(clues));
+document.getElementById('clue-input').value = '';
+renderClues();
+}
+function renderClues() {
+const container = document.getElementById('clue-log');
+container.innerHTML = '';
+let clues = JSON.parse(localStorage.getItem('traveller_clues')) || [];
+clues.forEach((c, index) => {
+const li = document.createElement('li');
+li.className = 'log-item';
+li.innerHTML = <span><strong>[${c.date}]:</strong> ${c.text}</span>;
+container.appendChild(li);
+});
+}
+function clearLogs(type) {
+if(confirm("Are you sure you want to wipe session logs?")) {
+localStorage.removeItem('traveller_clues');
+renderClues();
+}
+}
