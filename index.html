@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Traveller 2E Campaign Dashboard</title>
+    <title>Traveller 2E Mega-Campaign Dashboard</title>
     <style>
         :root {
             --bg-dark: #0f172a;
@@ -14,6 +14,7 @@
             --text-muted: #94a3b8;
             --border: #334155;
             --danger: #ef4444;
+            --success: #10b981;
         }
 
         body {
@@ -40,7 +41,7 @@
 
         .dashboard-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
             gap: 20px;
         }
 
@@ -54,6 +55,12 @@
 
         .form-group {
             margin-bottom: 15px;
+        }
+
+        .inline-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
         }
 
         label {
@@ -109,36 +116,42 @@
             color: var(--primary);
         }
 
-        .log-list {
+        .list-container {
             list-style: none;
             padding: 0;
-            margin: 10px 0 0 0;
-            max-height: 200px;
+            margin: 15px 0 0 0;
+            max-height: 250px;
             overflow-y: auto;
         }
 
-        .log-item {
-            padding: 8px;
-            border-bottom: 1px solid var(--border);
-            font-size: 0.875rem;
+        .item-row {
+            background-color: var(--bg-dark);
+            border: 1px solid var(--border);
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 4px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            font-size: 0.875rem;
         }
 
-        .clear-btn {
-            background-color: transparent;
-            color: var(--danger);
-            border: 1px solid var(--danger);
+        .combatant-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
             padding: 4px 8px;
             font-size: 0.75rem;
             width: auto;
-            margin-top: 10px;
         }
-
-        .clear-btn:hover {
-            background-color: var(--danger);
-            color: var(--text-main);
+        
+        .btn-danger:hover {
+            background-color: #b91c1c;
         }
     </style>
 </head>
@@ -146,165 +159,216 @@
 
     <header>
         <div>
-            <h1>TRAVELLER 2E</h1>
-            <p style="margin: 0; color: var(--text-muted);">Campaign Operations & Minutia Dashboard</p>
+            <h1>TRAVELLER 2E OPERATIONAL CONTROL</h1>
+            <p style="margin: 0; color: var(--text-muted);">Tactical Combat, Economics & Logistics Mega-Engine</p>
         </div>
     </header>
 
     <div class="dashboard-grid">
 
-        <!-- MODULE 1: JUMP & FUEL CALCULATOR -->
+        <!-- LOGISTICS MODULE -->
         <div class="card">
-            <h2>Jump & Fuel Calculator</h2>
+            <h2>Jump & Fuel Logistics</h2>
             <div class="form-group">
                 <label for="hull-size">Ship Hull Size (Tons)</label>
-                <input type="number" id="hull-size" value="200" min="10">
+                <input type="number" id="hull-size" value="200" onchange="calculateJump()">
             </div>
-            <div class="form-group">
-                <label for="jump-dist">Jump Distance (Parsecs)</label>
-                <select id="jump-dist">
-                    <option value="1">Jump-1</option>
-                    <option value="2" selected>Jump-2</option>
-                    <option value="3">Jump-3</option>
-                    <option value="4">Jump-4</option>
-                </select>
+            <div class="inline-group">
+                <div style="flex: 1;">
+                    <label for="jump-dist">Jump Distance</label>
+                    <select id="jump-dist" onchange="calculateJump()">
+                        <option value="1">Jump-1</option>
+                        <option value="2" selected>Jump-2</option>
+                        <option value="3">Jump-3</option>
+                        <option value="4">Jump-4</option>
+                    </select>
+                </div>
+                <div style="flex: 1;">
+                    <label for="power-plant">Power Plant</label>
+                    <input type="number" id="power-plant" value="2" onchange="calculateJump()">
+                </div>
             </div>
-            <div class="form-group">
-                <label for="power-plant">Power Plant Rating</label>
-                <input type="number" id="power-plant" value="2" min="1">
-            </div>
-            <div class="form-group">
-                <label for="weeks-ops">Weeks of Operation planned</label>
-                <input type="number" id="weeks-ops" value="4" min="1">
-            </div>
-            <button onclick="calculateJump()">Calculate Logistics</button>
-
             <div class="output-box">
                 <div class="output-row"><span>Jump Fuel Needed:</span><span id="out-jump-fuel" class="output-val">0 Tons</span></div>
-                <div class="output-row"><span>Power Plant Fuel/Week:</span><span id="out-pp-fuel" class="output-val">0 Tons</span></div>
-                <div class="output-row"><span>Total Core Operational Fuel:</span><span id="out-total-fuel" class="output-val">0 Tons</span></div>
-                <div class="output-row"><span>Standard Jump Duration:</span><span class="output-val">148 + 4d6 Hours (~1 Week)</span></div>
+                <div class="output-row"><span>Power Plant Fuel/Wk:</span><span id="out-pp-fuel" class="output-val">0 Tons</span></div>
+                <div class="output-row"><span>Total Core Reserve Required:</span><span id="out-total-fuel" class="output-val">0 Tons</span></div>
             </div>
         </div>
 
-        <!-- MODULE 2: SHIP FINANCIAL LEDGER -->
+        <!-- ECONOMICS MODULE -->
         <div class="card">
-            <h2>Ship Ledger & Economics</h2>
+            <h2>Ship Ledger & Bank Balance</h2>
             <div class="form-group">
-                <label for="current-funds">Current Ship Funds (Cr)</label>
-                <input type="number" id="current-funds" value="100000">
+                <label for="current-funds">Current Ship Bank Account (Cr)</label>
+                <input type="number" id="current-funds" value="100000" onchange="calculateOverhead()">
             </div>
-            <div class="form-group">
-                <label for="monthly-mortgage">Monthly Mortgage (Cr)</label>
-                <input type="number" id="monthly-mortgage" value="25000">
+            <div class="inline-group">
+                <div>
+                    <label for="monthly-mortgage">Mortgage (Cr)</label>
+                    <input type="number" id="monthly-mortgage" value="25000" onchange="calculateOverhead()">
+                </div>
+                <div>
+                    <label for="crew-salaries">Life/Salary (Cr)</label>
+                    <input type="number" id="crew-salaries" value="12000" onchange="calculateOverhead()">
+                </div>
             </div>
-            <div class="form-group">
-                <label for="crew-salaries">Monthly Salaries & Life Support (Cr)</label>
-                <input type="number" id="crew-salaries" value="12000">
-            </div>
-            <div class="form-group">
-                <label for="maintenance-fee">Monthly Maintenance Fund (Cr)</label>
-                <input type="number" id="maintenance-fee" value="2000">
-            </div>
-            <button onclick="calculateOverhead()">Calculate Monthly Overhead</button>
-
             <div class="output-box">
-                <div class="output-row"><span>Total Fixed Monthly Cost:</span><span id="out-overhead" class="output-val">0 Cr</span></div>
-                <div class="output-row"><span>Remaining Funds After Autopay:</span><span id="out-remaining-funds" class="output-val">0 Cr</span></div>
+                <div class="output-row"><span>Fixed Overhead:</span><span id="out-overhead" class="output-val">0 Cr</span></div>
+                <div class="output-row"><span>Ending Balance Post-Autopay:</span><span id="out-remaining-funds" class="output-val">0 Cr</span></div>
             </div>
         </div>
 
-        <!-- MODULE 3: LORE & CLUE MATRIX TRACKER -->
+        <!-- NEW MODULE 4: COMBAT & INITIATIVE TRACKER -->
         <div class="card">
-            <h2>Ancients Narrative Matrix</h2>
-            <div class="form-group">
-                <label for="clue-input">Log Discovered Clue / Artifact / Rumor</label>
-                <textarea id="clue-input" rows="3" placeholder="e.g., Found Research Logs on Calefaction pointing to Twilight's Peak..."></textarea>
+            <h2>Tactics & Combat Tracker</h2>
+            <div class="inline-group">
+                <input type="text" id="comb-name" placeholder="Name/Type (e.g., Thug A)">
+                <input type="number" id="comb-init" placeholder="Init" style="width: 70px;">
+                <input type="number" id="comb-hp" placeholder="HP" style="width: 70px;">
+                <input type="number" id="comb-arm" placeholder="Arm" style="width: 70px;">
             </div>
-            <button onclick="addClue()">Commit to Session Log</button>
-            <ul id="clue-log" class="log-list"></ul>
-            <button class="clear-btn" onclick="clearLogs('clues')">Clear Matrix Data</button>
+            <button onclick="addCombatant()">Deploy to Battlefield</button>
+            <ul id="combat-list" class="list-container"></ul>
+        </div>
+
+        <!-- NEW MODULE 5: SPECULATIVE TRADE GOODS ENGINE -->
+        <div class="card">
+            <h2>Speculative Cargo Generator</h2>
+            <div class="form-group">
+                <label for="starport-type">Local System Starport Class</label>
+                <select id="starport-type">
+                    <option value="A">Class A (Excellent)</option>
+                    <option value="B" selected>Class B (Good)</option>
+                    <option value="C">Class C (Routine)</option>
+                    <option value="D">Class D (Poor)</option>
+                    <option value="E">Class E (Frontier)</option>
+                </select>
+            </div>
+            <button onclick="generateTradeGoods()">Roll Manifest Lot Options</button>
+            <ul id="trade-list" class="list-container"></ul>
+        </div>
+
+        <!-- NARRATIVE CORE MATRIX -->
+        <div class="card" style="grid-column: 1 / -1;">
+            <h2>Campaign Discovery & Clue Matrix</h2>
+            <div class="form-group">
+                <textarea id="clue-input" rows="2" placeholder="Enter unlocked artifact records or hyper-spatial observations..."></textarea>
+            </div>
+            <button onclick="addClue()">Log Narrative Data Point</button>
+            <ul id="clue-log" class="list-container"></ul>
         </div>
 
     </div>
 
     <script>
-        // Load data on start
         window.onload = function() {
-            if(localStorage.getItem('hull-size')) document.getElementById('hull-size').value = localStorage.getItem('hull-size');
-            if(localStorage.getItem('current-funds')) document.getElementById('current-funds').value = localStorage.getItem('current-funds');
-            if(localStorage.getItem('monthly-mortgage')) document.getElementById('monthly-mortgage').value = localStorage.getItem('monthly-mortgage');
-            if(localStorage.getItem('crew-salaries')) document.getElementById('crew-salaries').value = localStorage.getItem('crew-salaries');
-            if(localStorage.getItem('maintenance-fee')) document.getElementById('maintenance-fee').value = localStorage.getItem('maintenance-fee');
-            
-            renderClues();
+            // Restore persistent state values
+            ['hull-size', 'current-funds', 'monthly-mortgage', 'crew-salaries', 'power-plant'].forEach(id => {
+                if(localStorage.getItem(id)) document.getElementById(id).value = localStorage.getItem(id);
+            });
             calculateJump();
             calculateOverhead();
+            renderClues();
+            renderCombatants();
         };
 
-        // Save inputs persistently
-        function autoSaveFields() {
-            localStorage.setItem('hull-size', document.getElementById('hull-size').value);
-            localStorage.setItem('current-funds', document.getElementById('current-funds').value);
-            localStorage.setItem('monthly-mortgage', document.getElementById('monthly-mortgage').value);
-            localStorage.setItem('crew-salaries', document.getElementById('crew-salaries').value);
-            localStorage.setItem('maintenance-fee', document.getElementById('maintenance-fee').value);
-        }
+        function autoSave(id, val) { localStorage.setItem(id, val); }
 
-        // Logic calculations
         function calculateJump() {
             const hull = parseFloat(document.getElementById('hull-size').value) || 0;
             const jump = parseFloat(document.getElementById('jump-dist').value) || 0;
             const pp = parseFloat(document.getElementById('power-plant').value) || 0;
-            const weeks = parseFloat(document.getElementById('weeks-ops').value) || 0;
-
-            // Traveller 2E Rules formulas:
-            // Jump Fuel = 0.1 * Hull Size * Jump Distance
-            const jumpFuel = 0.1 * hull * jump;
-			// Power Plant Fuel = 0.05 * Hull Size * Power Plant Rating (per 4 weeks under standard design rules)
-// Normalized per week: (0.05 * hull * pp) / 4 * weeks
-const ppFuelPerWeek = (0.05 * hull * pp) / 4;
-const ppTotalFuel = ppFuelPerWeek * weeks;
-document.getElementById('out-jump-fuel').innerText = jumpFuel.toFixed(1) + " Tons";
-document.getElementById('out-pp-fuel').innerText = ppFuelPerWeek.toFixed(1) + " Tons";
-document.getElementById('out-total-fuel').innerText = (jumpFuel + ppTotalFuel).toFixed(1) + " Tons";
-autoSaveFields();
+            const jFuel = 0.1 * hull * jump;
+const ppFuel = (0.05 * hull * pp) / 4;
+document.getElementById('out-jump-fuel').innerText = jFuel.toFixed(1) + " Tons";
+document.getElementById('out-pp-fuel').innerText = ppFuel.toFixed(1) + " Tons";
+document.getElementById('out-total-fuel').innerText = (jFuel + ppFuel).toFixed(1) + " Tons";
+autoSave('hull-size', hull);
+autoSave('power-plant', pp);
 }
 function calculateOverhead() {
 const funds = parseFloat(document.getElementById('current-funds').value) || 0;
-const mortgage = parseFloat(document.getElementById('monthly-mortgage').value) || 0;
+const mort = parseFloat(document.getElementById('monthly-mortgage').value) || 0;
 const crew = parseFloat(document.getElementById('crew-salaries').value) || 0;
-const maint = parseFloat(document.getElementById('maintenance-fee').value) || 0;
-const totalOverhead = mortgage + crew + maint;
-const remaining = funds - totalOverhead;
-document.getElementById('out-overhead').innerText = totalOverhead.toLocaleString() + " Cr";
-document.getElementById('out-remaining-funds').innerText = remaining.toLocaleString() + " Cr";
-autoSaveFields();
+const total = mort + crew;
+document.getElementById('out-overhead').innerText = total.toLocaleString() + " Cr";
+document.getElementById('out-remaining-funds').innerText = (funds - total).toLocaleString() + " Cr";
+autoSave('current-funds', funds);
+autoSave('monthly-mortgage', mort);
+autoSave('crew-salaries', crew);
 }
-// Matrix log systems
+// Tactical Matrix Operations
+function addCombatant() {
+const name = document.getElementById('comb-name').value.trim();
+const init = parseInt(document.getElementById('comb-init').value) || 0;
+const hp = parseInt(document.getElementById('comb-hp').value) || 10;
+const arm = parseInt(document.getElementById('comb-arm').value) || 0;
+if(!name) return;
+let list = JSON.parse(localStorage.getItem('t2_combat')) || [];
+list.push({ name, init, hp, arm });
+list.sort((a,b) => b.init - a.init);
+localStorage.setItem('t2_combat', JSON.stringify(list));
+['comb-name', 'comb-init', 'comb-hp', 'comb-arm'].forEach(id => document.getElementById(id).value = '');
+renderCombatants();
+}
+function renderCombatants() {
+const el = document.getElementById('combat-list'); el.innerHTML = '';
+let list = JSON.parse(localStorage.getItem('t2_combat')) || [];
+list.forEach((c, idx) => {
+const li = document.createElement('li'); li.className = 'item-row';
+li.innerHTML = <div class="combatant-info"><strong>INIT ${c.init} — ${c.name}</strong><span>HP: ${c.hp} | Armor: ${c.arm}</span></div> <button class="btn-danger" onclick="removeCombatant(${idx})">KIA</button>;
+el.appendChild(li);
+});
+}
+function removeCombatant(idx) {
+let list = JSON.parse(localStorage.getItem('t2_combat')) || [];
+list.splice(idx, 1);
+localStorage.setItem('t2_combat', JSON.stringify(list));
+renderCombatants();
+}
+// Trade Goods Operations Engine
+const cargoTable = [
+{ name: "Common Electronics", base: 20000, dice: 2 },
+{ name: "Basic Machine Parts", base: 10000, dice: 3 },
+{ name: "Bio-Medical Supplies", base: 50000, dice: 1 },
+{ name: "High-Tech Weaponry", base: 75000, dice: 1 },
+{ name: "Luxury Textiles", base: 15000, dice: 2 },
+{ name: "Petrochemical Cargo", base: 4000, dice: 4 },
+{ name: "Unrefined Precursor Ore", base: 35000, dice: 1 }
+];
+function generateTradeGoods() {
+const el = document.getElementById('trade-list'); el.innerHTML = '';
+const port = document.getElementById('starport-type').value;
+let numLots = 3;
+if(port === 'A') numLots = 6;
+if(port === 'B') numLots = 5;
+if(port === 'C') numLots = 4;
+for(let i=0; i < numLots; i++) {
+const item = cargoTable[Math.floor(Math.random() * cargoTable.length)];
+let tons = 0;
+for(let d=0; d < item.dice; d++) tons += Math.floor(Math.random() * 6) + 1;
+tons *= 5; // Scale up sizing array
+const li = document.createElement('li'); li.className = 'item-row';
+li.innerHTML = <div><strong>${item.name}</strong><br><span style="color:var(--text-muted)">Lot Size: ${tons} Tons | Base: ${item.base.toLocaleString()} Cr/Ton</span></div>;
+el.appendChild(li);
+}
+}
+// Narrative Clue Archiving
 function addClue() {
 const txt = document.getElementById('clue-input').value.trim();
 if(!txt) return;
-let clues = JSON.parse(localStorage.getItem('traveller_clues')) || [];
-clues.push({ text: txt, date: new Date().toLocaleDateString() });
-localStorage.setItem('traveller_clues', JSON.stringify(clues));
+let clues = JSON.parse(localStorage.getItem('t2_clues')) || [];
+clues.unshift({ text: txt, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) });
+localStorage.setItem('t2_clues', JSON.stringify(clues));
 document.getElementById('clue-input').value = '';
 renderClues();
 }
 function renderClues() {
-const container = document.getElementById('clue-log');
-container.innerHTML = '';
-let clues = JSON.parse(localStorage.getItem('traveller_clues')) || [];
-clues.forEach((c, index) => {
-const li = document.createElement('li');
-li.className = 'log-item';
-li.innerHTML = <span><strong>[${c.date}]:</strong> ${c.text}</span>;
-container.appendChild(li);
+const el = document.getElementById('clue-log'); el.innerHTML = '';
+let clues = JSON.parse(localStorage.getItem('t2_clues')) || [];
+clues.forEach(c => {
+const li = document.createElement('li'); li.className = 'item-row';
+li.innerHTML = <span><strong style="color:var(--primary)">[${c.time}]:</strong> ${c.text}</span>;
+el.appendChild(li);
 });
-}
-function clearLogs(type) {
-if(confirm("Are you sure you want to wipe session logs?")) {
-localStorage.removeItem('traveller_clues');
-renderClues();
-}
 }
